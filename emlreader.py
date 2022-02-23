@@ -3,8 +3,7 @@ from operator import truediv
 import os
 import json
 
-thislist = []
-thisdict = {}
+
 directory = './emlfiles'
 start = 'Content-type: text/plain;'
 end = 'html;'
@@ -15,12 +14,13 @@ products = []
 plaintext = []
 splitp = []
 productslist = [] 
+invoice = ""
 
 def splitproducts(products3):
-    productslist = []
     for p in products3:
-        
         if products3.index(p) % 4 == 0:
+            thisdict = {}
+            thisdict["invoice number"] = invoice
             thisdict["quantity"] = p
         if products3.index(p) % 4 == 1:
             thisdict["price"] = p
@@ -28,33 +28,38 @@ def splitproducts(products3):
             thisdict["description"] = p
         if products3.index(p) % 4 == 3:
             thisdict["name"] = p
-            productslist.append(thisdict)
-            thislist.append(productslist[0])
-        productslist = []    
-    print("length of productslist")
-    print(len(productslist))
-    
-            
+            thislist.append(thisdict)
+         
+      
+ 
+   
         
-        
+       
+       
 
-
-        
-    
+     
+ 
         
         
 
 def getproduct(text, startnum):
     products2 = []
+    removenextline = False
     for l in text[startnum + 1:]:
-
         products2.append(l)
+        if removenextline == True:
+            products2.remove(l)
+            print("removing line")
+            removenextline = False
+        if len(l) == 76:
+            removenextline = True
+        if l == "FARROW WHOLESALER\n":
+            products2.remove(l)
+        
         if "Subtotal" in l:
-            print("removing")
             products2.remove(l)
             break
-    print("length of products2")
-    print(len(products2))
+    
     splitproducts(products2)
 
 
@@ -67,9 +72,9 @@ def getproducts(text):
 
     for l in text:
           
-        if "Due on" in l:
+        if "Terms" in l:
 
-            productstart = text.index(l)
+            productstart = text.index(l) + 1
             break
         
     getproduct(text, productstart)
@@ -92,8 +97,6 @@ def grabtext(foo, num):
 
          
             break
-    print("Length of plaintext")
-    print(len(plaintext))
     getproducts(plaintext)
         
 
@@ -104,17 +107,14 @@ for filename in os.listdir(directory):
     if os.path.isfile(f):
         with open(f, "r") as fh:
             print(filenum)
-            print(filename)
-            lines = fh.readlines()
+            invoice = filename
+            lines = fh.read().splitlines()
             for l in lines:
                 if start in l:
                     linenum = lines.index(l)
-
-                grabtext(lines, linenum)
-                break
+                    grabtext(lines, linenum)
+                    break
 json_object = json.dumps(thislist, indent = 2, default = str)
 print(json_object)
-            
-#                print(l.rstrip())
 
 
